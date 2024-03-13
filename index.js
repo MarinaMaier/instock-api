@@ -11,6 +11,7 @@ app.use((req, _res, next) => {
     next();
 });
 
+// If you try to run the server, comment out the lines below
 const warehousesRoutes = require('./routes/warehouses-routes');
 const inventoryRoutes = require('./routes/inventory-routes');
 
