@@ -21,10 +21,41 @@ const findOne = async (req, res) => {
       contact_email: warehouse.contact_email,
     });
   } catch (err) {
-    res.status(500).send(`Error retrieving Users: ${err}`);
+    res.status(500).send(`Error retrieving warehouses: ${err}`);
   }
 };
 
+
+const inventories = async (req, res) => {
+  try {
+      // Check if the warehouse ID exists
+      const warehouse = await knex("warehouses")
+      .where({ id: req.params.id })
+      .first();
+
+    if (!warehouse) {
+      // If warehouse doesn't exist, return 404 response
+      return res.status(404).json({ message: `Warehouse with ID: ${req.params.id} not found` });
+    }
+
+    // Warehouse exists, proceed to fetch inventories
+    const inventories = await knex("warehouses")
+      .join("inventories", "inventories.warehouse_id", "warehouses.id")
+      .where({ warehouse_id: req.params.id });
+
+    res.json(inventories);
+  } catch (error) {
+    res.status(500).json({
+      message: `Unable to retrieve inventories for warehouse with ID ${req.params.id}: ${error}`,
+    });
+  }
+};
+
+
+
+
+
 module.exports = {
-  findOne
+  findOne,
+  inventories,
 }
