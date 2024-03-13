@@ -82,9 +82,37 @@ const remove = async (req, res) => {
   }
 };
 
+const update = async (req, res) => {
+  try {
+    const rowsUpdated = await knex("warehouses")
+      .where({ id: req.params.id })
+      .update(req.body);
+
+    if (rowsUpdated === 0) {
+      return res.status(404).json({
+        message: `User with ID ${req.params.id} not found` 
+      });
+    }
+
+    const updatedUser = await knex("warehouses")
+      .where({
+        id: req.params.id,
+      });
+    
+    res.json(updatedUser[0]);
+  } catch (error) {
+    res.status(500).json({
+      message: `Unable to update user with ID ${req.params.id}: ${error}` 
+    });
+  }
+};
+
+
+
 module.exports = {
   index,
   findOne,
   inventories,
   remove,
+  update,
 };
