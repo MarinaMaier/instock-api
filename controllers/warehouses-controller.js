@@ -34,6 +34,30 @@ const findOne = async (req, res) => {
   }
 };
 
+const update = async (req, res) => {
+  try {
+    const rowsUpdated = await knex("warehouses")
+      .where({ id: req.params.id })
+      .update(req.body);
+
+    if (rowsUpdated === 0) {
+      return res.status(404).json({
+        message: `warehouse with ID ${req.params.id} not found`,
+      });
+    }
+
+    const updatedwarehouse = await knex("warehouses").where({
+      id: req.params.id,
+    });
+
+    res.json(updatedwarehouse[0]);
+  } catch (error) {
+    res.status(500).json({
+      message: `Unable to update warehouse with ID ${req.params.id}: ${error}`,
+    });
+  }
+};
+
 const inventories = async (req, res) => {
   try {
     // Check if the warehouse ID exists
@@ -82,36 +106,10 @@ const remove = async (req, res) => {
   }
 };
 
-const update = async (req, res) => {
-  try {
-    const rowsUpdated = await knex("warehouses")
-      .where({ id: req.params.id })
-      .update(req.body);
-
-    if (rowsUpdated === 0) {
-      return res.status(404).json({
-        message: `User with ID ${req.params.id} not found` 
-      });
-    }
-
-    const updatedUser = await knex("warehouses")
-      .where({
-        id: req.params.id,
-      });
-    
-    res.json(updatedUser[0]);
-  } catch (error) {
-    res.status(500).json({
-      message: `Unable to update user with ID ${req.params.id}: ${error}` 
-    });
-  }
-};
-
-
-
 module.exports = {
   index,
   findOne,
+  update,
   inventories,
   remove,
   update,
