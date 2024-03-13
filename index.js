@@ -9,6 +9,7 @@ app.use(express.json());
 app.use(cors({ origin: CORS_ORIGIN }));
 app.use((req, _res, next) => {
     next();
+
 });
 
 // // If you try to run the server, comment out the lines below
@@ -21,7 +22,7 @@ app.use((req, _res, next) => {
 // app.use('/inventory', inventoryRoutes);
 
 app.get('/', (_req, res) => {
-    res.send('Welcome to my API');
+    res.send('Welcome to InStock API');
   });
 
 app.listen(PORT, function () {
