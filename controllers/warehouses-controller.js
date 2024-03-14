@@ -146,5 +146,4 @@ module.exports = {
   update,
   inventories,
   remove,
-  update,
 };
