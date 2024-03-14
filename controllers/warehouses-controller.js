@@ -36,6 +36,40 @@ const findOne = async (req, res) => {
 
 const update = async (req, res) => {
   try {
+    const requiredFields = [
+      "warehouse_name",
+      "address",
+      "city",
+      "country",
+      "contact_name",
+      "contact_position",
+      "contact_phone",
+      "contact_email",
+    ];
+
+    for (const field of requiredFields) {
+      if (!req.body[field]) {
+        return res.status(400).json({
+          message: `invalid input: ${field} was null or empty`,
+        });
+      }
+    }
+
+    const validPhoneNumberRegex =
+      /^[\+]?[0-9]*\ *[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+    if (!validPhoneNumberRegex.test(req.body.contact_phone)) {
+      return res.status(400).json({
+        message: `invalid input - contact_phone: '${req.body.contact_phone}' is formatted incorrectly, please use '+<intl-code> (<area-code>) abc-wxyz' format`,
+      });
+    }
+
+    const validEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!validEmailRegex.test(req.body.contact_email)) {
+      return res.status(400).json({
+        message: `invalid input - contact_email: '${req.body.contact_email}' is formatted incorrectly, please use '<example-email>@<example-domain>.<example-suffix>' format`,
+      });
+    }
+
     const rowsUpdated = await knex("warehouses")
       .where({ id: req.params.id })
       .update(req.body);
@@ -53,7 +87,7 @@ const update = async (req, res) => {
     res.json(updatedwarehouse[0]);
   } catch (error) {
     res.status(500).json({
-      message: `Unable to update warehouse with ID ${req.params.id}: ${error}`
+      message: `Unable to update warehouse with ID ${req.params.id}: ${error}`,
     });
   }
 };
