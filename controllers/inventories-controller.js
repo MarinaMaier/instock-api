@@ -105,7 +105,8 @@ const add = async (req, res) => {
         "status",
         "quantity"
       )
-      .where({ id: newInventoryId });
+      .where({ id: newInventoryId })
+      .first();
 
 res.status(201).json(createdInventory);
   } catch (error) {
