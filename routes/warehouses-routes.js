@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const warehousesController = require('../controllers/warehouses-controller');
 
-router.route("/").get(warehousesController.index);
+router.route("/").get(warehousesController.index).post(warehousesController.add);
 router.route('/:id').get(warehousesController.findOne).delete(warehousesController.remove);;
 router.route('/:id/inventories').get(warehousesController.inventories);
 
