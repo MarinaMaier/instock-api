@@ -3,7 +3,18 @@ const knex = require("knex")(require("../knexfile"));
 const index = async (_req, res) => {
   try {
     const data = await knex("warehouses");
-    res.status(200).json(data);
+    const responseData = data.map((warehouse) => ({
+      id: warehouse.id,
+      warehouse_name: warehouse.warehouse_name,
+      address: warehouse.address,
+      city: warehouse.city,
+      country: warehouse.country,
+      contact_name: warehouse.contact_name,
+      contact_position: warehouse.contact_position,
+      contact_phone: warehouse.contact_phone,
+      contact_email: warehouse.contact_email,
+    }));
+    res.status(200).json(responseData);
   } catch (err) {
     res.status(400).send(`Error retrieving warehouses: ${err}`);
   }
@@ -168,7 +179,7 @@ const add = async (req, res) => {
     }
 
     const validPhoneNumberRegex =
-    /^[\+]?[0-9]*\ *[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+      /^[\+]?[0-9]*\ *[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
     if (!validPhoneNumberRegex.test(req.body.contact_phone)) {
       return res.status(400).json({
         message: `invalid input - contact_phone: '${req.body.contact_phone}' is formatted incorrectly, please use '+<intl-code> (<area-code>) abc-wxyz' format`,
@@ -182,23 +193,12 @@ const add = async (req, res) => {
       });
     }
 
-
-
-    
-
-
-
-
-
-
-
-
     const result = await knex("warehouses").insert(req.body);
 
     const newWarehousesId = result[0];
     const createdwarehouse = await knex("warehouses")
-    .where({ id: newWarehousesId })
-    .first();;
+      .where({ id: newWarehousesId })
+      .first();
 
     res.status(201).json(createdwarehouse);
   } catch (error) {
@@ -207,7 +207,6 @@ const add = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   index,
