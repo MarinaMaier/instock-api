@@ -53,8 +53,8 @@ const findOne = async (req, res) => {
 const remove = async (req, res) => {
   try {
     const rowsDeleted = await knex("inventories")
-    .where({ id: req.params.id})
-    .delete();
+      .where({ id: req.params.id })
+      .delete();
     if (rowsDeleted === 0) {
       // Checking if the inventory item exists
       return res.status(404).json({ message: "Inventory ID not found" });
@@ -62,7 +62,7 @@ const remove = async (req, res) => {
     // No Content response
     res.sendStatus(204);
   } catch (error) {
-    res.sratus(500).json({message: "Unable to delete inventory item"});
+    res.sratus(500).json({ message: "Unable to delete inventory item" });
   }
 };
 
@@ -107,8 +107,27 @@ const add = async (req, res) => {
       });
     }
 
+    //define as we need to convert string quantity to int as that's what specifications input and output were
+    const {
+      warehouse_id,
+      item_name,
+      description,
+      category,
+      status,
+      quantity
+    } = req.body;
+
+    const newInventory = {
+      warehouse_id,
+      item_name,
+      description,
+      category,
+      status,
+      quantity: parseInt(quantity)
+  }
+
     //add inventory and display the inventory item
-    const result = await knex("inventories").insert(req.body);
+    const result = await knex("inventories").insert(newInventory);
 
     //select specific columns as there is also created_at and updated_at in table and response body in specifications does not specify that
     const newInventoryId = result[0];
@@ -125,12 +144,12 @@ const add = async (req, res) => {
       .where({ id: newInventoryId })
       .first();
 
-res.status(201).json(createdInventory);
+    res.status(201).json(createdInventory);
   } catch (error) {
-  res.status(500).json({
-    message: `Unable to create new warehouse: ${error}`,
-  });
-}
+    res.status(500).json({
+      message: `Unable to create new warehouse: ${error}`,
+    });
+  }
 };
 
 // PUT/EDIT an Inventory Item
