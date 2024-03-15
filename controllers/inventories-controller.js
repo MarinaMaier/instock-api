@@ -48,76 +48,66 @@ const findOne = async (req, res) => {
     });
   }
 };
-
-const add = async (req, res) => {
+// PUT/EDIT an Inventory Item
+const update = async (req, res) => {
+  const { warehouse_id, item_name, description, category, status, quantity } = req.body;
   try {
-    const requiredFields = [
-      "warehouse_id",
-      "item_name",
-      "description",
-      "category",
-      "status",
-      "quantity"
-    ];
-
-    //check if field is empty if not insert into the table
-    for (const field of requiredFields) {
-      if (!req.body[field]) {
-        return res.status(400).json({
-          message: `invalid input: ${field} was null or empty`,
-        });
-      }
+    // Checking if the inventory item with the specified ID exists
+    const existingInventory = await knex("inventories").where({ id: req.params.id }).first();
+    if (!existingInventory) {
+      return res.status(404).json({ message: "Inventory ID not found" });
     }
-
-    //check if warehouse exists
-    const warehouse = await knex("warehouses").where({ id: req.body["warehouse_id"] });
-    if (warehouse.length === 0) {
-      return res.status(400).json({
-        message: `Warehouse ${req.body["warehouse_id"]} does not exist`,
-      });
+    // Validating the request body for missing properties
+    if (!warehouse_id || !item_name || !description || !category || !status || !quantity) {
+      return res.status(400).json({ message: "Missing properties in the request body" });
     }
-
-    //check if quantity is not a number
-    const stringNum = parseInt(req.body["quantity"]);
-
-    if (!Number.isInteger(stringNum)) {
-      return res.status(400).json({
-        message: `${req.body["quantity"]} is not a valid number`,
-      });
-    } else if (stringNum < 0) {
-      return res.status(400).json({
-        message: `${req.body["quantity"]} cannot be under 0`,
-      });
+    // Checking if the warehouse_id value exists in the warehouses table
+    const existingWarehouse = await knex("warehouses").where({ id: warehouse_id }).first();
+    if (!existingWarehouse) {
+      return res.status(400).json({ message: "Warehouse is not found. Please select the warehouse from the dropdown list." });
     }
-
-    //add inventory and display the inventory item
-    const result = await knex("inventories").insert(req.body);
-
-    //select specific columns as there is also created_at and updated_at in table and response body in specifications does not specify that
-    const newInventoryId = result[0];
-    const createdInventory = await knex("inventories")
-      .select(
-        "id",
-        "warehouse_id",
-        "item_name",
-        "description",
-        "category",
-        "status",
-        "quantity"
-      )
-      .where({ id: newInventoryId })
-      .first();
-
-res.status(201).json(createdInventory);
+    // Validating the format of the quantity
+    if (isNaN(quantity)) {
+      return res.status(400).json({ message: "Quantity must be a number" });
+    }
+    // Updating the inventory item in the database
+    await knex("inventories").where({ id: req.params.id }).update({
+      warehouse_id,
+      item_name,
+      description,
+      category,
+      status,
+      quantity
+    });
+    // Retrieving the updated inventory item from the database
+    const updatedInventory = await knex("inventories").where({ id: req.params.id }).first();
+    // Returning the updated inventory item in the response
+    res.status(200).json(updatedInventory);
   } catch (error) {
-  res.status(500).json({
-    message: `Unable to create new warehouse: ${error}`,
-  });
-}
+    // Handling errors
+    console.error("Error updating inventory:", error);
+    res.status(500).json({ message: "Unable to update inventory item" });
+  }
 };
-
+// DELETE an Inventory Item
+const remove = async (req, res) => {
+  try {
+    const rowsDeleted = await knex("inventories")
+    .where({ id: req.params.id})
+    .delete();
+    if (rowsDeleted === 0) {
+      // Checking if the inventory item exists
+      return res.status(404).json({ message: "Inventory ID not found" });
+    }
+    // No Content response
+    res.sendStatus(204);
+  } catch (error) {
+    res.sratus(500).json({message: "Unable to delete inventory item"});
+  }
+};
 module.exports = {
   index,
   findOne,
-  add,
+  update,
+  remove,
 };
