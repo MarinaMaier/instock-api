@@ -105,9 +105,79 @@ const remove = async (req, res) => {
     res.sratus(500).json({message: "Unable to delete inventory item"});
   }
 };
+
+const add = async (req, res) => {
+  try {
+    const requiredFields = [
+      "warehouse_id",
+      "item_name",
+      "description",
+      "category",
+      "status",
+      "quantity"
+    ];
+
+    //check if field is empty if not insert into the table
+    for (const field of requiredFields) {
+      if (!req.body[field]) {
+        return res.status(400).json({
+          message: `invalid input: ${field} was null or empty`,
+        });
+      }
+    }
+
+    //check if warehouse exists
+    const warehouse = await knex("warehouses").where({ id: req.body["warehouse_id"] });
+    if (warehouse.length === 0) {
+      return res.status(400).json({
+        message: `Warehouse ${req.body["warehouse_id"]} does not exist`,
+      });
+    }
+
+    //check if quantity is not a number
+    const stringNum = parseInt(req.body["quantity"]);
+
+    if (!Number.isInteger(stringNum)) {
+      return res.status(400).json({
+        message: `${req.body["quantity"]} is not a valid number`,
+      });
+    } else if (stringNum < 0) {
+      return res.status(400).json({
+        message: `${req.body["quantity"]} cannot be under 0`,
+      });
+    }
+
+    //add inventory and display the inventory item
+    const result = await knex("inventories").insert(req.body);
+
+    //select specific columns as there is also created_at and updated_at in table and response body in specifications does not specify that
+    const newInventoryId = result[0];
+    const createdInventory = await knex("inventories")
+      .select(
+        "id",
+        "warehouse_id",
+        "item_name",
+        "description",
+        "category",
+        "status",
+        "quantity"
+      )
+      .where({ id: newInventoryId })
+      .first();
+
+res.status(201).json(createdInventory);
+  } catch (error) {
+  res.status(500).json({
+    message: `Unable to create new warehouse: ${error}`,
+  });
+}
+};
+
+
 module.exports = {
   index,
   findOne,
   update,
   remove,
+  add,
 };
