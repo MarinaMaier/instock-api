@@ -196,7 +196,9 @@ const add = async (req, res) => {
     const result = await knex("warehouses").insert(req.body);
 
     const newWarehousesId = result[0];
-    const createdwarehouse = await knex("warehouses").where({ id: newWarehousesId });
+    const createdwarehouse = await knex("warehouses")
+    .where({ id: newWarehousesId })
+    .first();;
 
     res.status(201).json(createdwarehouse);
   } catch (error) {
