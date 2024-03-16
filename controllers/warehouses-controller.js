@@ -1,20 +1,35 @@
 const knex = require("knex")(require("../knexfile"));
+const warehouseToJson = (warehouse) => {
+  return {
+    id: warehouse.id,
+    warehouse_name: warehouse.warehouse_name,
+    address: warehouse.address,
+    city: warehouse.city,
+    country: warehouse.country,
+    contact_name: warehouse.contact_name,
+    contact_position: warehouse.contact_position,
+    contact_phone: warehouse.contact_phone,
+    contact_email: warehouse.contact_email,
+  };
+};
+
+const warehouseAttr = [
+  "id",
+  "warehouse_name",
+  "address",
+  "city",
+  "country",
+  "contact_name",
+  "contact_position",
+  "contact_phone",
+  "contact_email",
+];
 
 const index = async (_req, res) => {
   try {
-    const data = await knex("warehouses");
-    const responseData = data.map((warehouse) => ({
-      id: warehouse.id,
-      warehouse_name: warehouse.warehouse_name,
-      address: warehouse.address,
-      city: warehouse.city,
-      country: warehouse.country,
-      contact_name: warehouse.contact_name,
-      contact_position: warehouse.contact_position,
-      contact_phone: warehouse.contact_phone,
-      contact_email: warehouse.contact_email,
-    }));
-    res.status(200).json(responseData);
+    const data = await knex("warehouses").select(warehouseAttr);
+    // const responseData = data.map(warehouseToJson);
+    res.status(200).json(data);
   } catch (err) {
     res.status(400).send(`Error retrieving warehouses: ${err}`);
   }
@@ -24,22 +39,13 @@ const findOne = async (req, res) => {
   try {
     const warehouse = await knex("warehouses")
       .where({ id: req.params.id })
+      .select(warehouseAttr)
       .first();
     if (!warehouse) {
       return res.status(404).json({ error: "Warehouse not found" });
     }
 
-    res.status(200).json({
-      id: warehouse.id,
-      warehouse_name: warehouse.warehouse_name,
-      address: warehouse.address,
-      city: warehouse.city,
-      country: warehouse.country,
-      contact_name: warehouse.contact_name,
-      contact_position: warehouse.contact_position,
-      contact_phone: warehouse.contact_phone,
-      contact_email: warehouse.contact_email,
-    });
+    res.status(200).json(warehouse);
   } catch (err) {
     res.status(500).send(`Error retrieving warehouses: ${err}`);
   }
@@ -91,11 +97,14 @@ const update = async (req, res) => {
       });
     }
 
-    const updatedwarehouse = await knex("warehouses").where({
-      id: req.params.id,
-    });
+    const updatedwarehouse = await knex("warehouses")
+      .where({
+        id: req.params.id,
+      })
+      .select(warehouseAttr)
+      .first();
 
-    res.json(updatedwarehouse[0]);
+    res.json(updatedwarehouse);
   } catch (error) {
     res.status(500).json({
       message: `Unable to update warehouse with ID ${req.params.id}: ${error}`,
@@ -108,6 +117,7 @@ const inventories = async (req, res) => {
     // Check if the warehouse ID exists
     const warehouse = await knex("warehouses")
       .where({ id: req.params.id })
+      .select(warehouseAttr)
       .first();
 
     if (!warehouse) {
@@ -120,7 +130,14 @@ const inventories = async (req, res) => {
     // Warehouse exists, proceed to fetch inventories
     const inventories = await knex("warehouses")
       .join("inventories", "inventories.warehouse_id", "warehouses.id")
-      .where({ warehouse_id: req.params.id });
+      .where({ warehouse_id: req.params.id })
+      .select(
+        "inventories.id",
+        "inventories.item_name",
+        "inventories.category",
+        "inventories.status",
+        "inventories.quantity"
+      );
 
     res.json(inventories);
   } catch (error) {
@@ -152,13 +169,6 @@ const remove = async (req, res) => {
 };
 
 const add = async (req, res) => {
-  //VALIDATION
-  // if (!req.body.name || !req.body.email) {
-  //   return res.status(400).json({
-  //     message: "Please provide name and email for the user in the request",
-  //   });
-  // }
-
   try {
     const requiredFields = [
       "warehouse_name",
@@ -198,6 +208,7 @@ const add = async (req, res) => {
     const newWarehousesId = result[0];
     const createdwarehouse = await knex("warehouses")
       .where({ id: newWarehousesId })
+      .select(warehouseAttr)
       .first();
 
     res.status(201).json(createdwarehouse);
