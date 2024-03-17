@@ -14,10 +14,6 @@ app.use((req, _res, next) => {
 
 });
 
-// // If you try to run the server, comment out the lines below
-
-// const inventoryRoutes = require('./routes/inventory-routes');
-
 // // Configuring warehouses endpoints
 app.use('/api/warehouses', warehousesRoutes);
 // // Configuring inventory endpoints
