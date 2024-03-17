@@ -1,18 +1,6 @@
 const knex = require("knex")(require("../knexfile"));
-const warehouseToJson = (warehouse) => {
-  return {
-    id: warehouse.id,
-    warehouse_name: warehouse.warehouse_name,
-    address: warehouse.address,
-    city: warehouse.city,
-    country: warehouse.country,
-    contact_name: warehouse.contact_name,
-    contact_position: warehouse.contact_position,
-    contact_phone: warehouse.contact_phone,
-    contact_email: warehouse.contact_email,
-  };
-};
 
+//fields to select for warehouse
 const warehouseAttr = [
   "id",
   "warehouse_name",
@@ -25,16 +13,17 @@ const warehouseAttr = [
   "contact_email",
 ];
 
+//get list of warehouses
 const index = async (_req, res) => {
   try {
     const data = await knex("warehouses").select(warehouseAttr);
-    // const responseData = data.map(warehouseToJson);
     res.status(200).json(data);
   } catch (err) {
     res.status(400).send(`Error retrieving warehouses: ${err}`);
   }
 };
 
+//get one warehouse
 const findOne = async (req, res) => {
   try {
     const warehouse = await knex("warehouses")
@@ -51,6 +40,7 @@ const findOne = async (req, res) => {
   }
 };
 
+//update one warehouse with new input data
 const update = async (req, res) => {
   try {
     const requiredFields = [
@@ -64,6 +54,7 @@ const update = async (req, res) => {
       "contact_email",
     ];
 
+    //confirm fields are not empty and phone and email conditions are met
     for (const field of requiredFields) {
       if (!req.body[field]) {
         return res.status(400).json({
@@ -147,6 +138,7 @@ const inventories = async (req, res) => {
   }
 };
 
+//delete warehouse 
 const remove = async (req, res) => {
   try {
     const rowsDeleted = await knex("warehouses")
@@ -163,11 +155,12 @@ const remove = async (req, res) => {
     res.sendStatus(204);
   } catch (error) {
     res.status(500).json({
-      message: `Unable to delete user: ${error}`,
+      message: `Unable to delete warehouse: ${error}`,
     });
   }
 };
 
+//add a new warehouse 
 const add = async (req, res) => {
   try {
     const requiredFields = [
@@ -180,6 +173,8 @@ const add = async (req, res) => {
       "contact_phone",
       "contact_email",
     ];
+
+    //if warehouse fields are empty or phone or email does not meet condition, return error
     for (const field of requiredFields) {
       if (!req.body[field]) {
         return res.status(400).json({

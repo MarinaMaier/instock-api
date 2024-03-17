@@ -1,5 +1,6 @@
 const knex = require("knex")(require("../knexfile"));
 
+//get all inventories and return
 const index = async (_req, res) => {
   try {
     const data = await knex("inventories")
@@ -19,6 +20,7 @@ const index = async (_req, res) => {
   }
 };
 
+//get one inventory item based on id and return
 const findOne = async (req, res) => {
   try {
     const inventory = await knex("inventories")
@@ -66,6 +68,7 @@ const remove = async (req, res) => {
   }
 };
 
+//add a new inventory item
 const add = async (req, res) => {
   try {
     const requiredFields = [
@@ -109,7 +112,6 @@ const add = async (req, res) => {
       });
     }
 
-    //define as we need to convert string quantity to int as that's what specifications input and output were
     const { warehouse_id, item_name, description, category, status, quantity } =
       req.body;
 
@@ -125,7 +127,6 @@ const add = async (req, res) => {
     //add inventory and display the inventory item
     const result = await knex("inventories").insert(newInventory);
 
-    //select specific columns as there is also created_at and updated_at in table and response body in specifications does not specify that
     const newInventoryId = result[0];
     const createdInventory = await knex("inventories")
       .select(
